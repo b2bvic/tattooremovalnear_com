@@ -43,6 +43,7 @@ async function getArticleBySlug(slug: string) {
 
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import ArticleList from '@/components/ArticleList';
 
 export default async function Page({ params }: PageProps) {
   const { slug } = params;
@@ -50,6 +51,11 @@ export default async function Page({ params }: PageProps) {
 
   if (!article) return notFound();
 
+  // Dynamically get all articles for internal links
+  const { getAllArticles } = await import('@/lib/articles');
+  const articles = await getAllArticles();
+  const otherArticles = articles.filter((a) => a.slug !== slug);
+  const relatedArticles = otherArticles.slice(0, 3); // Show 3 related articles
   const { data, contentHtml } = article;
   const navLinks = [
     { href: '/articles', text: 'All Articles' },
@@ -71,35 +77,29 @@ export default async function Page({ params }: PageProps) {
               className="prose prose-lg max-w-none prose-invert prose-a:text-purple-400 prose-a:font-semibold prose-a:no-underline hover:prose-a:underline prose-headings:text-white prose-blockquote:border-purple-700 prose-blockquote:text-purple-200 prose-strong:text-purple-200 prose-code:bg-[#181622] prose-code:text-purple-300 prose-code:rounded prose-code:px-1 prose-code:py-0.5 prose-pre:bg-[#181622] prose-pre:text-purple-200 prose-pre:rounded-xl prose-li:marker:text-purple-400"
               dangerouslySetInnerHTML={{ __html: contentHtml }}
             />
+            {/* Dynamic Internal Links Section */}
+            <div className="mt-12 pt-8 border-t border-purple-900">
+              <h2 className="text-xl font-bold mb-4 text-purple-200">Internal Links</h2>
+              <ArticleList articles={otherArticles} className="" />
+            </div>
           </article>
         </section>
         {/* Sidebar */}
-        <aside className="w-full md:w-80 flex-shrink-0 space-y-8">
-          {/* Author Widget */}
-          <div className="bg-white/10 border border-purple-900 rounded-2xl shadow-lg p-6 mb-4">
-            <div className="flex items-center gap-4 mb-2">
-              <div className="w-12 h-12 rounded-full bg-purple-700 flex items-center justify-center font-bold text-2xl text-white">A</div>
-              <div>
-                <div className="font-semibold text-white">Tattoo Removal Team</div>
-                <div className="text-purple-300 text-sm">Expert Contributors</div>
-              </div>
-            </div>
-            <p className="text-gray-300 text-sm">Bringing you the latest advice and science on safe, effective tattoo removal.</p>
+        <aside className="w-full md:w-80 flex-shrink-0">
+          {/* Author/CTA/Related widgets */}
+          <div className="bg-white/5 border border-purple-900 rounded-2xl shadow-xl p-6 mb-8">
+            <h3 className="text-lg font-semibold text-purple-200 mb-2">About the Author</h3>
+            <p className="text-gray-300 mb-2">TattooRemovalNear.com Team</p>
+            <p className="text-gray-400 text-sm">Experts in safe, effective tattoo removal and aftercare guidance.</p>
           </div>
-          {/* CTA Widget */}
-          <div className="bg-gradient-to-r from-purple-500 to-indigo-500 rounded-2xl shadow-lg p-6 text-center">
-            <div className="font-bold text-lg mb-2">Need a Consultation?</div>
-            <p className="mb-4 text-white/90">Find the best tattoo removal specialists near you.</p>
-            <a href="/" className="inline-block px-6 py-2 rounded-lg font-semibold bg-white/20 hover:bg-white/30 text-white border border-white/10 transition">Get Started</a>
+          <div className="bg-gradient-to-r from-purple-700 to-indigo-700 rounded-2xl shadow-xl p-6 mb-8 text-center">
+            <h3 className="text-lg font-semibold text-white mb-2">Free Consultation</h3>
+            <p className="text-purple-200 mb-4">Find the best clinic for your needs—get a quote today!</p>
+            <a href="/contact" className="inline-block px-6 py-2 rounded-lg font-semibold bg-white text-purple-700 hover:bg-purple-100 transition">Get Started</a>
           </div>
-          {/* Related Articles Widget */}
-          <div className="bg-white/10 border border-purple-900 rounded-2xl shadow-lg p-6">
-            <div className="font-semibold text-white mb-3">Related Articles</div>
-            <ul className="space-y-2">
-              <li><a href="/articles/understanding-laser-tattoo-removal" className="text-purple-400 hover:underline">Understanding Laser Tattoo Removal</a></li>
-              <li><a href="/articles/aftercare-tips-for-best-results" className="text-purple-400 hover:underline">Aftercare Tips for Best Results</a></li>
-              <li><a href="/articles/choosing-a-clinic" className="text-purple-400 hover:underline">Choosing the Right Clinic</a></li>
-            </ul>
+          <div className="bg-white/5 border border-purple-900 rounded-2xl shadow-xl p-6">
+            <h3 className="text-lg font-semibold text-purple-200 mb-4">Related Articles</h3>
+            <ArticleList articles={relatedArticles} />
           </div>
         </aside>
       </main>
