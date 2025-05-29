@@ -2,13 +2,7 @@
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
-interface ArticlePageProps {
-  params: {
-    slug: string;
-  };
-}
-
-export default function ArticlePage({ params }: ArticlePageProps) {
+export default function ArticlePage({ params }: { params: { slug: string } }) {
   const { slug } = params;
 
   const articleNavLinks = [
