@@ -3,7 +3,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
 import { getAllArticles } from '@/lib/articles';
-import ArticleList from '@/components/ArticleList';
+// ArticleList will be imported in the client component below
 
 
 export default async function Home() {
@@ -72,8 +72,8 @@ export default async function Home() {
 // Client component for filtering/searching articles
 'use client';
 import { useState, useMemo } from 'react';
-import ArticleList from '@/components/ArticleList';
 import { ArticleMeta } from '@/lib/articles';
+import ArticleList from '@/components/ArticleList';
 
 type ArticlesFilterSearchProps = {
   articles: ArticleMeta[];
