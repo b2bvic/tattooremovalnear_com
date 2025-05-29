@@ -49,17 +49,17 @@ export default async function Page({ params }: PageProps) {
 
   const { data, contentHtml } = article;
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <main className="flex-grow container mx-auto px-6 py-12">
-        <article className="bg-white p-8 rounded-lg shadow-md">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+    <div className="min-h-screen flex flex-col bg-[#181622] text-white">
+      <main className="flex-grow w-full max-w-3xl mx-auto px-4 sm:px-8 py-12">
+        <article className="bg-white/5 border border-purple-900 rounded-2xl shadow-xl p-8 md:p-12 backdrop-blur-lg">
+          <h1 className="text-3xl md:text-5xl font-extrabold text-white mb-4 drop-shadow-lg">
             {data.title || slug.replace(/-/g, ' ')}
           </h1>
           {data.date && (
-            <p className="text-gray-500 mb-6">Published on: {data.date}</p>
+            <p className="text-purple-300 mb-8 text-sm font-mono">Published on: {data.date}</p>
           )}
           <div
-            className="prose prose-lg max-w-none"
+            className="prose prose-lg max-w-none prose-invert prose-a:text-purple-400 prose-a:font-semibold prose-a:no-underline hover:prose-a:underline prose-headings:text-white prose-blockquote:border-purple-700 prose-blockquote:text-purple-200 prose-strong:text-purple-200 prose-code:bg-[#181622] prose-code:text-purple-300 prose-code:rounded prose-code:px-1 prose-code:py-0.5 prose-pre:bg-[#181622] prose-pre:text-purple-200 prose-pre:rounded-xl prose-li:marker:text-purple-400"
             dangerouslySetInnerHTML={{ __html: contentHtml }}
           />
         </article>
