@@ -2,7 +2,13 @@
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
-export default async function ArticlePage({ params }: { params: { slug: string } }) {
+export default async function ArticlePage({
+  params,
+  searchParams,
+}: {
+  params: { slug: string };
+  searchParams?: { [key: string]: string | string[] | undefined };
+}) {
   const { slug } = params;
 
   const articleNavLinks = [
