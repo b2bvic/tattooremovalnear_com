@@ -3,7 +3,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
 import { getAllArticles } from '@/lib/articles';
-// ArticleList will be imported in the client component below
+import ArticleList from '@/components/ArticleList';
 
 
 export default async function Home() {
@@ -61,6 +61,14 @@ export default async function Home() {
             <Link href="/articles" className="inline-block px-8 py-3 rounded-xl font-semibold bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white shadow-lg transition">
               View All Articles
             </Link>
+          </div>
+        </section>
+
+        {/* Internal Links Section */}
+        <section className="py-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 text-white/80">Internal Links</h2>
+          <div className="max-w-7xl mx-auto">
+            <ArticleList articles={articles} columns="grid-cols-1 sm:grid-cols-2 md:grid-cols-3" />
           </div>
         </section>
       </main>

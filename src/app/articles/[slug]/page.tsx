@@ -99,7 +99,7 @@ export default async function Page({ params }: PageProps) {
           </div>
           <div className="bg-white/5 border border-purple-900 rounded-2xl shadow-xl p-6">
             <h3 className="text-lg font-semibold text-purple-200 mb-4">Related Articles</h3>
-            <ArticleList articles={relatedArticles} />
+            <ArticleList articles={relatedArticles} columns="grid-cols-1" />
           </div>
         </aside>
       </main>
