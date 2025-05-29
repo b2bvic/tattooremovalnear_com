@@ -1,70 +1,79 @@
 // src/app/articles/[slug]/page.tsx
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import fs from 'fs/promises';
+import path from 'path';
+import matter from 'gray-matter';
+import { notFound } from 'next/navigation';
+import { remark } from 'remark';
+import html from 'remark-html';
 
-export default async function ArticlePage({
-  params,
-  searchParams,
-}: {
+// Define the expected props for this page
+type PageProps = {
   params: { slug: string };
-  searchParams?: { [key: string]: string | string[] | undefined };
-}) {
+};
+
+// Helper to get the absolute path to the articles directory
+const articlesDir = path.join(process.cwd(), '_articles');
+
+// Helper to get all article filenames
+async function getArticleFilenames() {
+  return await fs.readdir(articlesDir);
+}
+
+// Helper to get all slugs for static generation
+export async function generateStaticParams() {
+  const files = await getArticleFilenames();
+  return files
+    .filter((file) => file.endsWith('.md'))
+    .map((file) => ({ slug: file.replace(/\.md$/, '') }));
+}
+
+// Helper to get article content by slug
+async function getArticleBySlug(slug: string) {
+  const filePath = path.join(articlesDir, `${slug}.md`);
+  try {
+    const fileContent = await fs.readFile(filePath, 'utf8');
+    const { data, content } = matter(fileContent);
+    const processedContent = await remark().use(html).process(content);
+    const contentHtml = processedContent.toString();
+    return { data, contentHtml };
+  } catch (e) {
+    return null;
+  }
+}
+
+export default async function Page({ params }: PageProps) {
   const { slug } = params;
+  const article = await getArticleBySlug(slug);
 
-  const articleNavLinks = [
-    { href: '/articles', text: 'All Articles' },
-    { href: '/', text: 'Back to Home' },
-  ];
+  if (!article) return notFound();
 
-  // In a real application, you would fetch article content based on the slug
-  // For example, from a CMS or a local markdown file.
-
+  const { data, contentHtml } = article;
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header navLinks={articleNavLinks} />
-
-      {/* Main Content */}
       <main className="flex-grow container mx-auto px-6 py-12">
         <article className="bg-white p-8 rounded-lg shadow-md">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
-            Article: {slug.replace(/-/g, ' ')} (Placeholder)
+            {data.title || slug.replace(/-/g, ' ')}
           </h1>
-          <p className="text-gray-500 mb-6">Published on: {new Date().toLocaleDateString()}</p>
-          
-          <div className="prose prose-lg max-w-none">
-            <p>
-              This is a placeholder for the article with slug: <strong>{slug}</strong>.
-            </p>
-            <p>
-              In a real application, the content for this article would be fetched dynamically
-              based on the slug. This could involve querying a database, reading from a
-              Content Management System (CMS), or parsing local Markdown files.
-            </p>
-            <h2 className="text-2xl font-semibold mt-8 mb-4">Placeholder Content Sections</h2>
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
-              incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
-              nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-            </p>
-            <img src={`https://via.placeholder.com/800x400?text=Article+Image+for+${slug}`} alt={`Placeholder image for ${slug}`} className="my-6 rounded-md" />
-            <p>
-              Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore
-              eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt
-              in culpa qui officia deserunt mollit anim id est laborum.
-            </p>
-            <blockquote className="border-l-4 border-indigo-500 pl-4 italic my-6">
-              <p>This is an example blockquote within the article content.</p>
-            </blockquote>
-            <p>
-              For now, this page serves as a template for how individual articles will be displayed.
-              Future development will involve integrating a content source and rendering the
-              actual article text, images, and other media here.
-            </p>
-          </div>
+          {data.date && (
+            <p className="text-gray-500 mb-6">Published on: {data.date}</p>
+          )}
+          <div
+            className="prose prose-lg max-w-none"
+            dangerouslySetInnerHTML={{ __html: contentHtml }}
+          />
         </article>
       </main>
-
-      <Footer />
     </div>
   );
 }
+
+export async function generateMetadata({ params }: PageProps) {
+  const article = await getArticleBySlug(params.slug);
+  if (!article) return {};
+  return {
+    title: article.data.title || params.slug.replace(/-/g, ' '),
+    description: article.data.excerpt || '',
+  };
+}
+
