@@ -1,4 +1,5 @@
 // src/app/articles/page.tsx
+import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
@@ -20,22 +21,22 @@ export default function ArticlesPage() {
             <div className="bg-white p-6 rounded-lg shadow-md">
               <h2 className="text-xl font-semibold text-gray-700 mb-2">Understanding Laser Tattoo Removal</h2>
               <p className="text-gray-600 mb-4">Discover how laser technology safely removes unwanted tattoos.</p>
-              <a href="/articles/understanding-laser-tattoo-removal" className="text-indigo-600 hover:text-indigo-800 font-medium">Read More &rarr;</a>
+              <Link href="/articles/understanding-laser-tattoo-removal" className="text-indigo-600 hover:text-indigo-800 font-medium">Read More &rarr;</Link>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md">
               <h2 className="text-xl font-semibold text-gray-700 mb-2">Aftercare Tips for Best Results</h2>
               <p className="text-gray-600 mb-4">Proper aftercare is crucial for healing and achieving optimal results.</p>
-              <a href="/articles/aftercare-tips" className="text-indigo-600 hover:text-indigo-800 font-medium">Read More &rarr;</a>
+              <Link href="/articles/aftercare-tips" className="text-indigo-600 hover:text-indigo-800 font-medium">Read More &rarr;</Link>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md">
               <h2 className="text-xl font-semibold text-gray-700 mb-2">Choosing the Right Clinic</h2>
               <p className="text-gray-600 mb-4">What to look for when selecting a tattoo removal specialist.</p>
-              <a href="/articles/choosing-a-clinic" className="text-indigo-600 hover:text-indigo-800 font-medium">Read More &rarr;</a>
+              <Link href="/articles/choosing-a-clinic" className="text-indigo-600 hover:text-indigo-800 font-medium">Read More &rarr;</Link>
             </div>
              <div className="bg-white p-6 rounded-lg shadow-md">
               <h2 className="text-xl font-semibold text-gray-700 mb-2">The Cost of Tattoo Removal</h2>
               <p className="text-gray-600 mb-4">Factors that influence the price of tattoo removal procedures.</p>
-              <a href="/articles/cost-of-tattoo-removal" className="text-indigo-600 hover:text-indigo-800 font-medium">Read More &rarr;</a>
+              <Link href="/articles/cost-of-tattoo-removal" className="text-indigo-600 hover:text-indigo-800 font-medium">Read More &rarr;</Link>
             </div>
           </div>
         </section>
