@@ -1,26 +1,24 @@
+#!/usr/bin/env node
+
+/**
+ * Markdown → HTML converter for tattooremovalnear.com
+ *
+ * Parses frontmatter (double-colon format), converts markdown body via `marked`,
+ * wraps in the Clean Slate article template with schema, nav, footer.
+ *
+ * Can run standalone or be required by build.js.
+ */
+
 const fs = require('fs');
 const path = require('path');
 const { marked } = require('marked');
+const { megaNavHtml, megaNavScript, footerHtml, headIncludes, SAME_AS_ARRAY } = require('./shared');
 
 const SKIP_FILES = ['README.md', '_brief.md', '_content-stack.md'];
 const ARTICLES_DIR = path.join(__dirname, '..', 'Articles');
 const DIST_DIR = path.join(__dirname, '..', 'dist', 'articles');
 
-const ENTITY_DOMAINS = [
-  'scalewithsearch.com',
-  'victorvalentineromo.com',
-  'aifirstsearch.com',
-  'browserprompt.com',
-  'creatinepedia.com',
-  'polytraffic.com',
-  'tattooremovalnear.com',
-  'comicstripai.com',
-  'tattooremovalnear.com',
-  'aipaypercrawl.com',
-  'b2bvic.com',
-  'seobyrole.com',
-  'quickfixseo.com'
-];
+// ─── Frontmatter Parser (double-colon style) ─────────────────────
 
 function parseFrontmatter(content) {
   const meta = {};
@@ -43,104 +41,147 @@ function slugify(filename) {
   return filename.replace(/\.md$/, '');
 }
 
-function buildArticleHTML(title, description, body, slug, date) {
-  const htmlBody = marked(body);
-  const entityLinks = ENTITY_DOMAINS.map(d => `    <link rel="me" href="https://${d}" />`).join('\n');
+// ─── Reading Time ─────────────────────────────────────────────────
 
-  const jsonLd = JSON.stringify({
+function readingTime(text) {
+  return Math.ceil(text.split(/\s+/).length / 200);
+}
+
+// ─── Schema Generators ───────────────────────────────────────────
+
+function articleSchema(title, description, slug, date) {
+  return {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": "MedicalWebPage",
     "headline": title,
     "description": description,
     "author": {
       "@type": "Person",
+      "@id": "https://victorvalentineromo.com/#person",
       "name": "Victor Valentine Romo",
       "url": "https://victorvalentineromo.com"
     },
     "publisher": {
       "@type": "Organization",
-      "name": "Tattoo Removal Near Me",
-      "url": "https://tattooremovalnear.com"
+      "@id": "https://tattooremovalnear.com/#organization",
+      "name": "Tattoo Removal Near",
+      "url": "https://tattooremovalnear.com",
+      "sameAs": SAME_AS_ARRAY
     },
-    "datePublished": date || "2026-01-19",
+    "datePublished": date,
+    "dateModified": date,
     "mainEntityOfPage": {
       "@type": "WebPage",
       "@id": `https://tattooremovalnear.com/articles/${slug}.html`
     }
-  }, null, 2);
+  };
+}
+
+function breadcrumbSchema(title, slug) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://tattooremovalnear.com" },
+      { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://tattooremovalnear.com/articles.html" },
+      { "@type": "ListItem", "position": 3, "name": title, "item": `https://tattooremovalnear.com/articles/${slug}.html` }
+    ]
+  };
+}
+
+// ─── HTML Template ────────────────────────────────────────────────
+
+function buildArticleHTML(title, description, body, slug, date, keywords) {
+  const htmlBody = marked(body);
+  const minutes = readingTime(body);
+  const isoDate = (date || '2026-01-19').replace(/\./g, '-');
+
+  const schemas = [
+    articleSchema(title, description, slug, isoDate),
+    breadcrumbSchema(title, slug)
+  ];
+  const schemaScripts = schemas.map(s =>
+    `    <script type="application/ld+json">\n${JSON.stringify(s, null, 6)}\n    </script>`
+  ).join('\n');
+
+  const safeTitle = title.replace(/"/g, '&quot;');
+  const safeDesc = (description || '').replace(/"/g, '&quot;');
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>${title} | Tattoo Removal Near Me</title>
-    <meta name="description" content="${description}" />
-    <meta name="author" content="Victor Valentine Romo" />
-    <meta property="og:title" content="${title}" />
-    <meta property="og:description" content="${description}" />
-    <meta property="og:type" content="article" />
-    <meta property="og:url" content="https://tattooremovalnear.com/articles/${slug}.html" />
-    <meta property="og:site_name" content="Tattoo Removal Near Me" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="${title}" />
-    <meta name="twitter:description" content="${description}" />
-    <link rel="canonical" href="https://tattooremovalnear.com/articles/${slug}.html" />
-${entityLinks}
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              emerald: {
-                50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 300: '#6ee7b7',
-                400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857',
-                800: '#065f46', 900: '#064e3b', 950: '#022c22'
-              }
-            }
-          }
-        }
-      }
-    </script>
-    <script type="application/ld+json">
-${jsonLd}
-    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${safeTitle} | Tattoo Removal Near</title>
+    <meta name="description" content="${safeDesc}">
+    <meta name="author" content="Victor Valentine Romo">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="${safeTitle}">
+    <meta property="og:description" content="${safeDesc}">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://tattooremovalnear.com/articles/${slug}.html">
+    <meta property="og:site_name" content="Tattoo Removal Near">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${safeTitle}">
+    <meta name="twitter:description" content="${safeDesc}">
+    <link rel="canonical" href="https://tattooremovalnear.com/articles/${slug}.html">
+${headIncludes}
+${schemaScripts}
 </head>
-<body class="bg-white text-gray-900 antialiased">
+<body>
+${megaNavHtml}
 
-    <!-- Nav -->
-    <nav class="border-b border-gray-200 bg-white">
-        <div class="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-            <a href="/" class="text-xl font-bold text-rose-600 hover:text-rose-700 transition-colors">Tattoo Removal Near Me</a>
-            <div class="flex gap-6 text-sm font-medium text-gray-600">
-                <a href="/articles.html" class="hover:text-rose-600 transition-colors">Articles</a>
-                <a href="/#about" class="hover:text-rose-600 transition-colors">About</a>
-            </div>
-        </div>
-    </nav>
+  <main class="page-content">
+    <div class="container" style="padding-top:var(--space-8);">
+      <div class="breadcrumbs" style="padding-top:0;">
+        <a href="/">Home</a>
+        <span class="sep">&rsaquo;</span>
+        <a href="/articles.html">Articles</a>
+        <span class="sep">&rsaquo;</span>
+        <span>${title}</span>
+      </div>
+    </div>
 
-    <!-- Article -->
-    <main class="max-w-4xl mx-auto px-6 py-12">
-        <article class="prose prose-lg prose-gray max-w-none prose-headings:text-gray-900 prose-h1:text-3xl prose-h1:font-bold prose-h2:text-2xl prose-h2:font-semibold prose-h2:mt-12 prose-h2:mb-4 prose-h3:text-xl prose-h3:font-medium prose-h3:mt-8 prose-h3:mb-3 prose-a:text-rose-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 prose-blockquote:border-rose-500 prose-blockquote:bg-rose-50 prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:rounded-r-lg">
-            ${htmlBody}
+    <div class="container">
+      <div class="article-body">
+        <header style="margin-bottom:var(--space-8);">
+          <div style="display:flex; align-items:center; gap:var(--space-3); margin-bottom:var(--space-4);">
+            <span class="badge badge-teal">${minutes} min read</span>
+            ${keywords ? `<span class="badge badge-muted">${keywords.split(',')[0].trim()}</span>` : ''}
+          </div>
+          <h1>${title}</h1>
+          ${description ? `<p style="font-size:var(--text-lg); margin-top:var(--space-4);">${description}</p>` : ''}
+        </header>
+
+        <article>
+          ${htmlBody}
         </article>
 
-        <div class="mt-16 pt-8 border-t border-gray-200">
-            <a href="/articles.html" class="text-rose-600 hover:text-rose-700 font-medium">&larr; All Articles</a>
+        <div class="cta-box">
+          <h3>Ready to Start Your Removal?</h3>
+          <p>Find verified clinics near you with transparent pricing and real technology data.</p>
+          <a href="/find-a-clinic.html" class="btn btn-primary btn-lg">Find a Clinic Near You</a>
+          <div class="trust-signals">
+            <span>850+ clinics researched</span>
+            <span>50 US markets</span>
+            <span>Real pricing data</span>
+          </div>
         </div>
-    </main>
 
-    <!-- Footer -->
-    <footer class="border-t border-gray-200 bg-gray-50 mt-16">
-        <div class="max-w-4xl mx-auto px-6 py-8 text-center text-sm text-gray-500">
-            &copy; 2026 Tattoo Removal Near Me. A <a href="https://scalewithsearch.com" class="text-rose-600 hover:underline">Scale With Search</a> property.
+        <div style="margin-top:var(--space-8); padding-top:var(--space-6); border-top:1px solid var(--border);">
+          <a href="/articles.html" style="font-weight:600;">&larr; All Articles</a>
         </div>
-    </footer>
+      </div>
+    </div>
+  </main>
 
+${footerHtml}
+${megaNavScript}
 </body>
 </html>`;
 }
+
+// ─── Process All Articles ─────────────────────────────────────────
 
 function processArticles() {
   if (!fs.existsSync(ARTICLES_DIR)) {
@@ -150,7 +191,9 @@ function processArticles() {
 
   fs.mkdirSync(DIST_DIR, { recursive: true });
 
-  const files = fs.readdirSync(ARTICLES_DIR).filter(f => f.endsWith('.md') && !SKIP_FILES.includes(f));
+  const files = fs.readdirSync(ARTICLES_DIR)
+    .filter(f => f.endsWith('.md') && !SKIP_FILES.includes(f));
+
   const metadata = [];
 
   for (const file of files) {
@@ -163,7 +206,7 @@ function processArticles() {
     const date = (meta.date || meta.created || '2026.01.19').replace(/\./g, '-');
     const keywords = meta.keywords || meta.focus_keyword || '';
 
-    const html = buildArticleHTML(title, description, body, slug, date);
+    const html = buildArticleHTML(title, description, body, slug, date, keywords);
     fs.writeFileSync(path.join(DIST_DIR, `${slug}.html`), html);
     console.log(`  Built: articles/${slug}.html`);
 
@@ -173,7 +216,7 @@ function processArticles() {
   return metadata;
 }
 
-module.exports = { processArticles };
+module.exports = { processArticles, parseFrontmatter, buildArticleHTML };
 
 if (require.main === module) {
   const articles = processArticles();

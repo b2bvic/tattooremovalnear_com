@@ -2,6 +2,12 @@
   "name": "tattooremovalnear",
   "version": "1.0.0",
   "private": true,
-  "scripts": { "build": "node scripts/build.js" },
+  "scripts": {
+    "build": "node scripts/build.js",
+    "indexes": "node scripts/generate-indexes.js",
+    "sitemap": "node scripts/generate-sitemap.js",
+    "retemplate": "node scripts/retemplate.js",
+    "md": "node scripts/md-to-html.js"
+  },
   "dependencies": { "marked": "^15.0.0" }
 }
