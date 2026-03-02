@@ -158,13 +158,11 @@ ${megaNavHtml}
         </article>
 
         <div class="cta-box">
-          <h3>Ready to Start Your Removal?</h3>
-          <p>Find verified clinics near you with transparent pricing and real technology data.</p>
-          <a href="/find-a-clinic.html" class="btn btn-primary btn-lg">Find a Clinic Near You</a>
-          <div class="trust-signals">
-            <span>850+ clinics researched</span>
-            <span>50 US markets</span>
-            <span>Real pricing data</span>
+          <h3>This is one piece of the system.</h3>
+          <p>Built by Victor Romo (<a href="https://b2bvic.com" target="_blank" rel="me" style="color:var(--accent); text-decoration:underline;">@b2bvic</a>) &mdash; I build AI memory systems for businesses.</p>
+          <div style="display:flex; justify-content:center; gap:var(--space-4); flex-wrap:wrap;">
+            <a href="https://scalewithsearch.com" target="_blank" rel="me" class="btn btn-primary btn-lg">See The Full System</a>
+            <a href="https://github.com/b2bvic/scale-with-search" target="_blank" class="btn btn-outline btn-lg">View Repo</a>
           </div>
         </div>
 
